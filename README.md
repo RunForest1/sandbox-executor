@@ -1,27 +1,36 @@
 # sandbox-executor
 
+*[Читать на русском](./README.ru.md)*
+
 Runs a shell command inside an isolated, resource-limited Docker container and
 returns the result. That's the whole job — this package has no concept of a
 "project", "build", "deployment", "lesson", or any other domain entity. A caller
 hands it an image, a command, some limits, and (optionally) stdin; it hands back
 stdout, stderr, exit code and duration.
 
-It lives as a standalone project, a sibling directory next to
-[Ranger](../ranger/README.md), not inside that repo — it has no dependency on
-anything there. It isn't pushed to a git remote yet; once it is, consumers pull it
-in as an ordinary dependency instead of copy-pasting the code.
+It's a standalone package with no dependency on any consumer's codebase, meant to
+be shared across multiple projects that each need to run untrusted or semi-trusted
+commands in isolation, rather than having each project embed its own copy of this
+logic.
 
 ## Why this exists
 
-Ranger uses it to run a build's `install`/`test`/`build` steps. A separate,
-unrelated project (a small algorithm-exercises platform) is expected to use the
-exact same operation to run a student's solution against hidden tests. Same
-mechanism, different content on the way in — so it's a standalone package rather
-than code embedded in either project's build pipeline.
+Different callers need the exact same operation — run a command in an isolated
+container with limits and get the result back — with completely different content
+on the way in: one might use it to run a CI build's `install`/`test`/`build`
+steps, another to run a student's solution against hidden tests. Same mechanism,
+different payload, so it lives as one small package rather than being duplicated
+or entangled with either caller's domain logic.
 
 ## Install
 
-Once pushed to a git remote:
+With [bun](https://bun.sh):
+
+```bash
+bun add github:<you>/sandbox-executor#v0.1.0
+```
+
+Or add it to `package.json` by hand and run `bun install`:
 
 ```jsonc
 // consumer's package.json
@@ -32,13 +41,15 @@ Once pushed to a git remote:
 }
 ```
 
-Until then, Ranger consumes it as a local path dependency
-(`"sandbox-executor": "file:../../../sandbox-executor"` in
-`apps/backend/package.json`) — which only works for local development, not for
-Ranger's own Docker image build (Docker can't reach a path outside its build
-context). That's a known, temporary gap: Ranger's backend image won't build until
-this package has a real git URL to install from — see the note at the top of
-`apps/backend/Dockerfile` in the Ranger repo.
+Either way works the same with a plain git URL instead of `github:owner/repo`
+(`bun add git+ssh://git@example.com/sandbox-executor.git#v0.1.0`), which is what
+you need for a private repo without a GitHub-specific shorthand.
+
+There's no npm-registry publish step for a git dependency, so nothing builds it on
+your behalf — that's why `dist/` is committed to this repo rather than gitignored:
+installing via bun gets you working, prebuilt JS immediately, no separate build
+step required. If you change `src/`, run `bun run build` and commit the updated
+`dist/` before tagging a new version.
 
 ## Usage
 
@@ -111,10 +122,9 @@ domain concept into the package.
   the caller.
 - The container is always removed after the run, success or failure.
 
-This is the same posture whether the thing running inside is a `npm install` from
-a trusted-ish read-only-deploy-key'd repo (Ranger) or an arbitrary student
-submission (the exercises platform) — untrusted-input assumptions apply equally
-to both.
+This is the same posture regardless of what's running inside — a package install
+from a repo the caller trusts to some degree, or an arbitrary, fully untrusted
+submission — untrusted-input assumptions apply equally to both.
 
 ## Requirements
 
@@ -123,8 +133,8 @@ The process calling `execute`/`ensureImage` needs access to a Docker socket
 otherwise). If that process itself runs inside a container with the host's
 Docker socket mounted in (Docker-outside-of-Docker), `workdir` must be a path
 that resolves correctly for the **host** daemon, not for the calling container —
-see Ranger's own `apps/backend/src/builds/build-runner.service.ts` for how it
-handles that translation.
+the calling process typically needs to bind-mount a directory from the host at a
+known path and translate paths accordingly before calling `execute`.
 
 ## License
 

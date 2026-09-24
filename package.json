@@ -1,0 +1,26 @@
+{
+  "name": "sandbox-executor",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Runs a shell command inside a resource-limited, network-isolated Docker container and returns its output — no knowledge of any calling project's domain.",
+  "keywords": ["docker", "sandbox", "executor", "isolation"],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "dockerode": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.3.31",
+    "@types/node": "^22.7.0",
+    "typescript": "^5.6.2"
+  }
+}

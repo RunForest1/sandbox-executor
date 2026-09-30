@@ -27,7 +27,7 @@ or entangled with either caller's domain logic.
 With [bun](https://bun.sh):
 
 ```bash
-bun add github:<you>/sandbox-executor#v0.1.0
+bun add github:<you>/sandbox-executor#v0.2.0
 ```
 
 Or add it to `package.json` by hand and run `bun install`:
@@ -36,13 +36,13 @@ Or add it to `package.json` by hand and run `bun install`:
 // consumer's package.json
 {
   "dependencies": {
-    "sandbox-executor": "github:<you>/sandbox-executor#v0.1.0"
+    "sandbox-executor": "github:<you>/sandbox-executor#v0.2.0"
   }
 }
 ```
 
 Either way works the same with a plain git URL instead of `github:owner/repo`
-(`bun add git+ssh://git@example.com/sandbox-executor.git#v0.1.0`), which is what
+(`bun add git+ssh://git@example.com/sandbox-executor.git#v0.2.0`), which is what
 you need for a private repo without a GitHub-specific shorthand.
 
 There's no npm-registry publish step for a git dependency, so nothing builds it on
@@ -82,6 +82,7 @@ interface ExecuteOptions {
   cpuLimit: number;
   workdir?: string;   // host path, bind-mounted into the container as /workspace
   network?: boolean;  // default false — no outbound network
+  env?: Record<string, string>; // environment variables for the process inside the container
   onOutput?: (chunk: { stream: 'stdout' | 'stderr'; text: string }) => void;
 }
 
@@ -107,10 +108,11 @@ interface EnsureImageOptions {
 function ensureImage(options: EnsureImageOptions): Promise<void>;
 ```
 
-`network` and `onOutput` aren't part of a stricter, more minimal version of this
+`network`, `env` and `onOutput` aren't part of a stricter, more minimal version of this
 interface — they were added because a real caller needed them: `install` steps
 generally need registry access, and a build UI wants to stream output live rather
-than wait for the whole command to finish. Both are opt-in and don't leak any
+than wait for the whole command to finish; builds need the project's environment
+variables (tokens, API addresses). All three are opt-in and don't leak any
 domain concept into the package.
 
 ## Security posture

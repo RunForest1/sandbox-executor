@@ -27,7 +27,7 @@ CI-сборки, другой — чтобы прогнать решение п�
 Через [bun](https://bun.sh):
 
 ```bash
-bun add github:<you>/sandbox-executor#v0.1.0
+bun add github:<you>/sandbox-executor#v0.2.0
 ```
 
 Либо добавить вручную в `package.json` и выполнить `bun install`:
@@ -36,13 +36,13 @@ bun add github:<you>/sandbox-executor#v0.1.0
 // package.json потребителя
 {
   "dependencies": {
-    "sandbox-executor": "github:<you>/sandbox-executor#v0.1.0"
+    "sandbox-executor": "github:<you>/sandbox-executor#v0.2.0"
   }
 }
 ```
 
 Работает так же с обычной git-ссылкой вместо `github:owner/repo`
-(`bun add git+ssh://git@example.com/sandbox-executor.git#v0.1.0`) — это нужно для
+(`bun add git+ssh://git@example.com/sandbox-executor.git#v0.2.0`) — это нужно для
 приватного репозитория без GitHub-специфичного сокращения.
 
 У git-зависимости нет шага publish на npm-реестре, а значит никто не соберёт её
@@ -82,6 +82,7 @@ interface ExecuteOptions {
   cpuLimit: number;
   workdir?: string;   // путь на хосте, монтируется в контейнер как /workspace
   network?: boolean;  // по умолчанию false — сеть наружу выключена
+  env?: Record<string, string>; // переменные окружения процесса внутри контейнера
   onOutput?: (chunk: { stream: 'stdout' | 'stderr'; text: string }) => void;
 }
 
@@ -107,10 +108,11 @@ interface EnsureImageOptions {
 function ensureImage(options: EnsureImageOptions): Promise<void>;
 ```
 
-`network` и `onOutput` не входят в более строгую, минимальную версию этого
+`network`, `env` и `onOutput` не входят в более строгую, минимальную версию этого
 интерфейса — их добавили, потому что они реально понадобились: шагам `install`
 обычно нужен доступ к реестру, а UI сборки хочет стримить вывод по мере
-поступления, а не ждать завершения всей команды. Оба поля опциональны и не
+поступления, а не ждать завершения всей команды; сборкам нужны переменные
+окружения проекта (токены, адреса API). Все три поля опциональны и не
 протаскивают в пакет никакого доменного понятия.
 
 ## Модель безопасности

@@ -14,6 +14,7 @@ async function execute(options) {
     const container = await docker.createContainer({
         Image: options.image,
         Cmd: ['sh', '-c', options.command],
+        Env: options.env ? Object.entries(options.env).map(([key, value]) => `${key}=${value}`) : undefined,
         WorkingDir: options.workdir ? '/workspace' : undefined,
         OpenStdin: Boolean(options.stdin),
         StdinOnce: Boolean(options.stdin),

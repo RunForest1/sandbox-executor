@@ -19,6 +19,11 @@ export interface ExecuteOptions {
    */
   network?: boolean;
   /**
+   * Переменные окружения процесса внутри контейнера. Передаются через Docker API,
+   * а не подставляются в command — значения не видны в `ps` и не требуют экранирования.
+   */
+  env?: Record<string, string>;
+  /**
    * Опциональный хук для стриминга вывода по мере поступления — помимо накопленных
    * stdout/stderr, которые в любом случае возвращаются целиком в ExecuteResult
    * после завершения команды.
@@ -43,6 +48,7 @@ export async function execute(options: ExecuteOptions): Promise<ExecuteResult> {
   const container = await docker.createContainer({
     Image: options.image,
     Cmd: ['sh', '-c', options.command],
+    Env: options.env ? Object.entries(options.env).map(([key, value]) => `${key}=${value}`) : undefined,
     WorkingDir: options.workdir ? '/workspace' : undefined,
     OpenStdin: Boolean(options.stdin),
     StdinOnce: Boolean(options.stdin),

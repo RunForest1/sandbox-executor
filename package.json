@@ -1,7 +1,7 @@
 {
   "name": "sandbox-executor",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Runs a shell command inside a resource-limited, network-isolated Docker container and returns its output — no knowledge of any calling project's domain.",
   "keywords": ["docker", "sandbox", "executor", "isolation"],
   "license": "MIT",
